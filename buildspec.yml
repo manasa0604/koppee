@@ -2,37 +2,25 @@ version: 0.2
 
 env:
   variables:
-    AWS_REGION: us-east-1              # ✅ Replace with your region if different
-    IMAGE_REPO_NAME: koppee           # ✅ Replace with your ECR repository name
-  exported-variables:
-    - IMAGE_TAG
-    - REPOSITORY_URI
+    AWS_REGION: us-east-1
+    IMAGE_REPO_NAME: koppee
+    IMAGE_TAG: latest
 
 phases:
   pre_build:
     commands:
       - echo Logging in to Amazon ECR...
       - aws --version
-      - ACCOUNT_ID=$(aws sts get-caller-identity --query 'Account' --output text)
-      - IMAGE_TAG=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | cut -c 1-7)
-      - REPOSITORY_URI=$ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$IMAGE_REPO_NAME
-      - aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $REPOSITORY_URI
-      - echo Logged in to ECR
-
+      - $(aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin 044519418214.dkr.ecr.$AWS_REGION.amazonaws.com)
+      - REPOSITORY_URI=044519418214.dkr.ecr.$AWS_REGION.amazonaws.com/$IMAGE_REPO_NAME
   build:
     commands:
       - echo Building the Docker image...
       - docker build -t $REPOSITORY_URI:$IMAGE_TAG .
-      - docker tag $REPOSITORY_URI:$IMAGE_TAG $REPOSITORY_URI:latest
-
   post_build:
     commands:
-      - echo Pushing Docker image to ECR...
+      - echo Pushing the Docker image...
       - docker push $REPOSITORY_URI:$IMAGE_TAG
-      - docker push $REPOSITORY_URI:latest
-      - echo Writing imagedefinitions.json...
-      - printf '[{"name":"delfood","imageUri":"%s"}]' $REPOSITORY_URI:$IMAGE_TAG > imagedefinitions.json
 
 artifacts:
-  files:
-    - imagedefinitions.json
+  files: '**/*'
