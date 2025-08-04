@@ -3,7 +3,7 @@ version: 0.2
 env:
   variables:
     AWS_REGION: us-east-1
-    IMAGE_REPO_NAME: koppee
+    IMAGE_REPO_NAME: delfood
     IMAGE_TAG: latest
 
 phases:
